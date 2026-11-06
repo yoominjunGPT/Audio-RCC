@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>결 — Spotify 음악 발견</title>
+<style>
+:root{color-scheme:dark;--bg:#14121d;--fg:#f3eee6;--mut:#9b95ab;--c:#7a5cff;--ln:#ffffff1f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 Pretendard,system-ui,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+.gl{position:fixed;inset:0;z-index:-1;opacity:0;transition:opacity 1.1s}.gl.on{opacity:.75}
+button,input{font:inherit;color:inherit}button{cursor:pointer}
+button:focus-visible,input:focus-visible,.c:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+header{display:flex;gap:18px;align-items:center;padding:14px 20px;position:sticky;top:0;background:#14121dd9;backdrop-filter:blur(10px);z-index:5;border-bottom:1px solid var(--ln)}
+header b{font-size:22px;letter-spacing:-.04em;font-weight:800}
+nav{display:flex;gap:4px;flex:1;overflow-x:auto}
+nav button{background:none;border:0;padding:6px 12px;border-radius:99px;color:var(--mut);white-space:nowrap}
+nav button.on{background:var(--fg);color:#14121d}
+#me{font-size:13px;color:var(--mut)}#me button{background:none;border:0;color:var(--mut);text-decoration:underline}
+main{max-width:1200px;margin:0 auto;padding:20px}
+h1{font-size:clamp(28px,5vw,48px);letter-spacing:-.04em;line-height:1.1;margin:10px 0 22px;font-weight:800;max-width:14em}
+h2{font-size:19px;margin:34px 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mut);margin:0 0 14px;font-size:13px}
+.mos{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));grid-auto-rows:105px;grid-auto-flow:dense;gap:10px}
+@media(min-width:700px){.mos{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:150px;gap:12px}}
+.s1{grid-column:span 2;grid-row:span 2}.s2{grid-column:span 2}.s3{grid-row:span 2}
+.c{position:relative;overflow:hidden;border-radius:14px;background:#2a2638 center/cover;transition:transform .25s,box-shadow .25s;cursor:pointer}
+.c:hover{transform:translateY(-3px);box-shadow:0 14px 30px #0008}
+.c .t{position:absolute;inset:auto 0 0 0;padding:26px 9px 8px;background:linear-gradient(transparent,#000d);font-size:12px;line-height:1.3}
+.c .t b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.s1 .t b{font-size:17px;white-space:normal}
+.c .t span{color:#ddd;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd{position:absolute;left:7px;top:7px;display:flex;gap:4px}
+.bd i{font-style:normal;font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;background:#fff;color:#14121d}
+.bd i.k{background:#000a;color:#fff;font-weight:600;border:1px solid #fff5}
+.bd i.n{background:#ff4f7b;color:#fff}
+.ac{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .2s}
+.c:hover .ac,.c:focus-within .ac{opacity:1}@media(hover:none){.ac{opacity:1}}
+.ac button{width:28px;height:28px;border-radius:50%;border:0;background:#000b;font-size:13px;padding:0}
+.ac button.on{background:#ff4f7b}
+.gen{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.g{border:0;border-radius:18px;padding:14px;text-align:left;min-height:84px;font-weight:700;font-size:16px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;transition:transform .25s;text-shadow:0 1px 6px #0005}
+.g:hover{transform:rotate(-1.5deg) scale(1.03)}.g:nth-child(5n+1){grid-column:span 2;min-height:110px}.g:nth-child(7n+3){min-height:120px}
+.g small{font-weight:500;opacity:.85;font-size:11px}
+.bub{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end}
+.b{width:var(--z);text-align:center;font-size:12px;cursor:pointer;background:none;border:0;padding:0}
+.b div{width:var(--z);height:var(--z);border-radius:50%;background:#2a2638 center/cover;transition:transform .3s}.b:hover div{transform:scale(1.07)}
+.b span{display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.strip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
+.strip .c{flex:0 0 190px;height:190px;scroll-snap-align:start}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.chip{border:1px solid var(--ln);background:none;border-radius:99px;padding:5px 13px;font-size:13px}.chip.on{background:var(--fg);color:#14121d}
+.sk{border-radius:14px;background:linear-gradient(90deg,#2a2638,#3a3550,#2a2638) 0 0/200% 100%;animation:sh 1.4s infinite}@keyframes sh{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.in{width:100%;padding:13px 18px;border-radius:99px;border:1px solid var(--ln);background:#ffffff0d;font-size:16px}
+.em{color:var(--mut);padding:30px 0}.em button{margin-left:8px}
+.row{display:flex;gap:12px;align-items:center;padding:8px;border-radius:12px;border:1px solid var(--ln);background:none;width:100%;text-align:left;margin-bottom:6px}.row:hover{background:#ffffff0d}
+.row div.im{width:46px;height:46px;border-radius:8px;background:#2a2638 center/cover;flex:none}
+#md{position:fixed;inset:0;background:#000a;z-index:20;display:none;align-items:flex-end;justify-content:center}
+#md.on{display:flex}#md>div{background:#1b1827;width:min(900px,100%);max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px;animation:up .3s}@keyframes up{from{transform:translateY(40px);opacity:0}}
+@media(min-width:800px){#md{align-items:center}#md>div{border-radius:22px}}
+.hd{display:flex;gap:16px;align-items:center}.hd .im{width:110px;height:110px;border-radius:14px;background:center/cover #2a2638;flex:none}.hd h3{margin:0;font-size:22px;letter-spacing:-.03em}
+.btn{border:0;border-radius:99px;padding:9px 18px;background:#1ed760;color:#06210f;font-weight:700}.btn.g2{background:#ffffff1f;color:var(--fg)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--fg);color:#14121d;padding:9px 18px;border-radius:99px;z-index:30;display:none;font-weight:600}
+.setup{max-width:520px;margin:8vh auto;text-align:left}.setup ol{color:var(--mut);padding-left:18px}.setup code{background:#ffffff14;padding:1px 6px;border-radius:6px;word-break:break-all}
+.setup .in{margin:12px 0;border-radius:12px}
+
+/* ---- 디자인 개선 ---- */
+:root{--bg:#100e18;--sf:#ffffff0d;--sf2:#ffffff17;--ln:#ffffff1a}
+body{font-family:"Pretendard Variable",Pretendard,system-ui,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+header{padding:12px 22px;background:#100e18b8;backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid #ffffff0f}
+nav{flex:0 1 auto;background:var(--sf);border:1px solid var(--ln);padding:4px;border-radius:99px;gap:2px}
+nav button{padding:7px 16px;font-weight:600;font-size:14px;transition:background .2s,color .2s}
+nav button:hover{color:var(--fg)}nav button.on{background:var(--fg);color:#100e18}
+#me{margin-left:auto;white-space:nowrap}
+#me button{background:var(--sf);border:1px solid var(--ln);border-radius:99px;padding:5px 12px;text-decoration:none;color:var(--fg);font-size:12px;margin-left:4px}
+main{padding:28px 22px 80px}
+h1{font-size:clamp(30px,5.5vw,54px);margin:14px 0 26px;line-height:1.08}
+h2{font-size:21px;margin:46px 0 14px;font-weight:700}
+.mos{gap:12px}
+.c{border-radius:20px;box-shadow:inset 0 1px 0 #ffffff14,0 8px 24px #0005}
+.c:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 18px 36px #0009}
+.c .t{padding:34px 12px 11px;background:linear-gradient(transparent,#000c 70%)}
+.bd i{backdrop-filter:blur(6px)}
+.ac button{background:#000a;backdrop-filter:blur(8px);transition:transform .15s,background .15s}.ac button:hover{transform:scale(1.12)}
+.gen{gap:12px}
+.g{border-radius:22px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 #ffffff33,0 6px 18px #0004}
+.g::after{content:"";position:absolute;right:-24px;bottom:-24px;width:90px;height:90px;border-radius:50%;background:radial-gradient(#ffffff40,transparent 70%)}
+.b div{box-shadow:0 8px 20px #0006,0 0 0 2px #ffffff14}
+.chip{padding:6px 15px;transition:background .2s}.chip:hover{background:var(--sf2)}.chip.on:hover{background:var(--fg)}
+.in{padding:15px 22px;background:var(--sf);transition:border-color .2s,background .2s}.in:focus{border-color:#ffffff55;background:var(--sf2);outline:none}
+.row{border-radius:16px;background:var(--sf);border-color:transparent}
+#md{background:#000b;backdrop-filter:blur(6px)}
+#md>div{background:#1a1726;border:1px solid var(--ln);padding:24px;border-radius:28px 28px 0 0;box-shadow:0 30px 80px #000a}
+@media(min-width:800px){#md>div{border-radius:28px}}
+.hd .im{width:120px;height:120px;border-radius:18px;box-shadow:0 10px 30px #0008}
+.btn{padding:10px 20px;transition:transform .15s,filter .15s}.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+#toast{box-shadow:0 10px 30px #0007;bottom:28px}
+.setup{margin:14vh auto;padding:34px;background:var(--sf);border:1px solid var(--ln);border-radius:28px;text-align:center}.setup h1{font-size:30px;margin:0 0 20px}.setup .btn{width:100%;padding:13px}
+::-webkit-scrollbar{height:8px;width:8px}::-webkit-scrollbar-thumb{background:#ffffff26;border-radius:9px}
+</style>
+</head>
+<body>
+<div class="gl on" id="g0"></div><div class="gl" id="g1"></div>
+<header><nav id="nav"></nav><div id="me"></div></header>
+<main id="main"></main>
+<div id="md"><div id="mc"></div></div>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),LS=localStorage,REDIR=location.origin+location.pathname;
+const SC='user-library-read user-modify-playback-state user-read-playback-state user-library-modify playlist-read-private playlist-modify-private playlist-modify-public user-top-read';
+const S={known:new Set(),liked:new Set(),likedTr:[],pls:[],topA:[],topT:[],tg:[],gw:{},y:2020,scr:'l',me:null},TR={},AR={};
+const P=[1,0,0,2,0,3,0,0,2,0,0,3,0,0,1,0,2,0];
+const GEN=[['팝','pop'],['인디','indie'],['R&B','r&b'],['힙합','hip hop'],['재즈','jazz'],['록','rock'],['메탈','metal'],['EDM','edm'],['클래식','classical'],['K-POP','k-pop'],['J-POP','j-pop'],['시티팝','city pop'],['로파이','lo-fi'],['어쿠스틱','acoustic'],['드림팝','dream pop'],['신스웨이브','synthwave'],['보사노바','bossa nova'],['라틴','latin'],['컨트리','country'],['앰비언트','ambient'],['소울','soul'],['펑크','funk'],['포크','folk'],['하우스','house'],['슈게이즈','shoegaze'],['트랩','trap']];
+const MOOD={'잔잔':'chill acoustic','몽환':'dreamy','청량':'summer fresh','어두운':'dark','감성':'emotional'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+const hue=s=>[...s].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7)%360;
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',2600)}
+
+/* ---------- 인증 (PKCE) ---------- */
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+async function login(){const id=$('#cid').value.trim();if(!id)return toast('Client ID를 입력해 주세요');LS.cid=id;LS.sc=SC;const v=b64(crypto.getRandomValues(new Uint8Array(48)));LS.ver=v;const ch=b64(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)));location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({client_id:id,response_type:'code',redirect_uri:REDIR,scope:SC,code_challenge_method:'S256',code_challenge:ch})}
+async function tok(b){const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:LS.cid,...b})});const j=await r.json();if(!j.access_token)throw Error('토큰 발급 실패');LS.at=j.access_token;LS.exp=Date.now()+j.expires_in*1000-6e4;if(j.refresh_token)LS.rt=j.refresh_token}
+function logout(){['at','rt','exp','ver'].forEach(k=>LS.removeItem(k));location.href=REDIR}
+async function api(p,o={},n=0){if(Date.now()>LS.exp&&LS.rt)await tok({grant_type:'refresh_token',refresh_token:LS.rt});
+const r=await fetch(p.startsWith('http')?p:'https://api.spotify.com/v1'+p,{method:o.method||'GET',headers:{Authorization:'Bearer '+LS.at,'Content-Type':'application/json'},body:o.body?JSON.stringify(o.body):undefined});
+if(r.status==429&&n<2){await new Promise(s=>setTimeout(s,(+r.headers.get('Retry-After')||1)*1000));return api(p,o,n+1)}
+if(r.status==401){logout();throw Error('세션이 만료되었습니다')}if(!r.ok)throw Error(r.status);return r.json().catch(()=>({}))}
+const T=(p,o)=>api(p,o).catch(()=>null);
+
+/* ---------- 데이터 정규화 ---------- */
+const norm=t=>{if(!t||!t.id)return null;const im=t.album?.images||[];const x={id:t.id,name:t.name,ar:(t.artists||[]).map(a=>a.name).join(', '),aid:t.artists?.[0]?.id,an:t.artists?.[0]?.name,img:(im[1]||im[0]||{}).url||'',rd:t.album?.release_date||'',url:t.external_urls?.spotify||'https://open.spotify.com/track/'+t.id};TR[t.id]=x;return x};
+const normA=a=>{const x={id:a.id,name:a.name,img:(a.images?.[1]||a.images?.[0]||{}).url||'',genres:a.genres||[],url:a.external_urls?.spotify};AR[a.id]=x;return x};
+const isNew=t=>t.rd.length>=10&&Date.parse(t.rd)>Date.now()-30*864e5;
+const CC={};const col=u=>CC[u]||(CC[u]=new Promise(r=>{if(!u)return r('#7a5cff');const m=new Image();m.crossOrigin='anonymous';m.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');x.drawImage(m,0,0,8,8);const d=x.getImageData(0,0,8,8).data;let R=0,G=0,B=0;for(let i=0;i<256;i+=4){R+=d[i];G+=d[i+1];B+=d[i+2]}r(`rgb(${R/64|0},${G/64|0},${B/64|0})`)}catch{r('#7a5cff')}};m.onerror=()=>r('#7a5cff');m.src=u}));
+const PC={};const pal=u=>PC[u]||(PC[u]=new Promise(r=>{const d=['#7a5cff','#2a1f5c'];if(!u)return r(d);const m=new Image();m.crossOrigin='anonymous';m.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=24;const x=c.getContext('2d');x.drawImage(m,0,0,24,24);const D=x.getImageData(0,0,24,24).data,B={};
+for(let i=0;i<D.length;i+=4){const R=D[i],G=D[i+1],b=D[i+2],mx=Math.max(R,G,b),sa=mx?(mx-Math.min(R,G,b))/mx:0,k=(R>>5)+','+(G>>5)+','+(b>>5),o=B[k]||(B[k]={n:0,R:0,G:0,B:0,c:0});o.n+=.3+sa*2-(mx<40?.25:0);o.R+=R;o.G+=G;o.B+=b;o.c++}
+const L=Object.values(B).map(o=>({n:o.n,c:[o.R/o.c|0,o.G/o.c|0,o.B/o.c|0]})).sort((a,b)=>b.n-a.n),a=L[0].c,b=(L.find(o=>Math.hypot(o.c[0]-a[0],o.c[1]-a[1],o.c[2]-a[2])>90)||L[0]).c;r([`rgb(${a})`,`rgb(${b})`])}catch{r(d)}};m.onerror=()=>r(d);m.src=u}));
+let gi=0;async function glow(u){const[a,b]=await pal(u);gi^=1;const e=$('#g'+gi);e.style.background=`linear-gradient(160deg,${a} 0%,${b} 50%,transparent 100%)`;e.classList.add('on');$('#g'+(gi^1)).classList.remove('on')}
+
+/* ---------- 렌더러 ---------- */
+const card=(t,i=0,strip)=>{const k=S.known.has(t.id),l=S.liked.has(t.id);return `<div class="c ${strip?'':'s'+P[i%P.length]}" tabindex="0" role="button" data-t="${t.id}" style="background-image:url('${esc(t.img)}')"><div class="bd">${isNew(t)?'<i class="n">NEW</i>':''}${k?'<i class="k">아는 곡</i>':''}</div><div class="ac"><button data-a="like" data-id="${t.id}" class="${l?'on':''}" aria-label="좋아요">♥</button><button data-a="sim" data-id="${t.id}" aria-label="비슷한 곡">≈</button></div><div class="t"><b>${esc(t.name)}</b><span>${esc(t.ar)}</span></div></div>`};
+const mos=(a,c='mos')=>a.length?`<div class="${c}">${a.map((t,i)=>card(t,i,c=='strip')).join('')}</div>`:'<div class="em">표시할 곡이 없어요. 다른 장르나 분위기를 골라 보세요.</div>';
+const bubs=a=>{const Z=[120,86,104,140,92,110,78,128];return a.length?`<div class="bub">${a.map((x,i)=>`<button class="b" data-a="art" data-id="${x.id}" style="--z:${Z[i%Z.length]}px"><div style="background-image:url('${esc(x.img)}')"></div><span>${esc(x.name)}</span></button>`).join('')}</div>`:'<div class="em">추천할 아티스트를 찾지 못했어요.</div>'};
+const genTiles=l=>`<div class="gen">${l.map(([k,q])=>`<button class="g" data-a="gen" data-q="${esc(q)}" data-k="${esc(k)}" style="background:linear-gradient(135deg,hsl(${hue(q)} 62% 42%),hsl(${(hue(q)+50)%360} 60% 28%))">${esc(k)}<small>${esc(q)}</small></button>`).join('')}</div>`;
+const skel=n=>`<div class="mos">${Array.from({length:n},(_,i)=>`<div class="sk s${P[i%P.length]}"></div>`).join('')}</div>`;
+const err=(m,f)=>`<div class="em">${m}<button class="chip" onclick="${f}">다시 시도</button></div>`;
+
+/* ---------- 검색/추천 로직 ---------- */
+async function srch(q,type='track',off=0){const r=await T('/search?'+new URLSearchParams({q,type,limit:10,offset:off}));if(!r)return[];return type=='track'?(r.tracks?.items||[]).map(norm).filter(Boolean):(r.artists?.items||[]).map(normA)}
+const uniq=a=>{const s=new Set();return a.filter(t=>t&&!s.has(t.id)&&s.add(t.id))};
+const GV={};const ag=async id=>{if(!id)return[];if(GV[id])return GV[id];return GV[id]=AR[id]?.genres?.length?AR[id].genres:((await T('/artists/'+id))?.genres||[])};
+const scr=s=>/[가-힯]/.test(s)?'k':/[぀-ヿ]/.test(s)?'j':'l';
+const wj=(G,w)=>{let a=0,b=0;new Set([...G,...Object.keys(w)]).forEach(k=>{const x=G.includes(k)?1:0,y=w[k]||0;a+=Math.min(x,y);b+=Math.max(x,y)});return b?a/b:0};
+const boost=(id,d)=>ag(TR[id]?.aid).then(g=>g.forEach(x=>S.gw[x]=Math.max(0,Math.min(1,(S.gw[x]||0)+d))));
+async function rank(pool,P,n=18){pool=uniq(pool).filter(t=>t.id!=P.ex&&t.aid!=P.exa);await Promise.all([...new Set(pool.map(t=>t.aid))].slice(0,24).map(ag));
+const top=new Set(S.topA.map(a=>a.id));
+const sc=t=>{const ry=+t.rd.slice(0,4)||P.y;return wj(GV[t.aid]||[],P.w)*6+Math.max(0,1-Math.abs(ry-P.y)/8)*1.5+(scr(t.name+t.ar)==P.s?1.2:0)+(top.has(t.aid)?.6:0)+(isNew(t)?.3:0)-(S.known.has(t.id)?.8:0)};
+const c={};return pool.map(t=>[sc(t),t]).sort((a,b)=>b[0]-a[0]).map(x=>x[1]).filter(t=>(c[t.aid]=(c[t.aid]||0)+1)<=2).slice(0,n)}
+async function similar(t,mood){const g=await ag(t.aid),y=+t.rd.slice(0,4)||2020,w=MOOD[mood]||'',yr=`year:${y-3}-${Math.min(y+3,2030)}`;
+const qs=g.slice(0,4).map(x=>`${w} genre:"${x}" ${yr}`);if(g.length>1)qs.push(`${w} genre:"${g[0]}" genre:"${g[1]}"`);if(!g.length)qs.push(`${w||t.an} ${yr}`);
+const pool=(await Promise.all(qs.flatMap(q=>[0,10].map(o=>srch(q.trim(),'track',o+Math.floor(Math.random()*10)))))).flat();
+return rank(pool,{w:Object.fromEntries(g.map(x=>[x,1])),y,s:scr(t.name+t.ar),ex:t.id,exa:t.aid})}
+async function forYou(){const e=Object.entries(S.gw),g=e.length?e:GEN.map(x=>[x[1],1]);
+const pick=sh(g.slice(0,12)).slice(0,4).map(x=>x[0]),qs=pick.map(x=>`genre:"${x}"`);if(pick.length>1)qs.push(`genre:"${pick[0]}" genre:"${pick[1]}"`);
+const pool=(await Promise.all(qs.map(q=>srch(q,'track',Math.floor(Math.random()*30))))).flat();
+return rank(pool,{w:S.gw,y:S.y,s:S.scr},24)}
+async function newArtists(){const known=new Set(S.topA.map(a=>a.id)),g=Object.keys(S.gw).length?Object.keys(S.gw):GEN.map(x=>x[1]);
+const r=uniq((await Promise.all(sh(g.slice(0,10)).slice(0,3).map(q=>srch(`genre:"${q}"`,'artist',Math.floor(Math.random()*20))))).flat()).filter(a=>!known.has(a.id));
+return r.sort((a,b)=>wj(b.genres,S.gw)-wj(a.genres,S.gw))}
+
+/* ---------- 화면 ---------- */
+const TABS=[['home','곡'],['artists','아티스트'],['explore','장르'],['search','검색'],['lib','좋아요']];let tab='home';
+function nav(){$('#nav').innerHTML=TABS.map(([k,v])=>`<button class="${k==tab?'on':''}" data-a="tab" data-id="${k}">${v}</button>`).join('')}
+function go(t){tab=t;nav();scrollTo(0,0);({home,artists,explore,search,lib})[t]()}
+async function home(){const m=$('#main'),n=S.me?.display_name||'';
+m.innerHTML=`<h1>${n?esc(n)+'님을 위한 곡':'추천 곡'}</h1><h2>내 취향 장르</h2>${genTiles([...S.tg.slice(0,5).map(q=>[(GEN.find(x=>x[1]==q)||[q])[0],q]),...sh(GEN).filter(x=>!S.tg.includes(x[1])).slice(0,9)])}
+<h2>취향에서 뻗어 나간 곡</h2><div id="a1">${skel(10)}</div>
+<h2>최근 한 달 내 발매</h2><div id="a3"></div>`;
+const f=async()=>{try{const r=await forYou();$('#a1').innerHTML=mos(r.slice(0,18));glow(r[0]?.img)}catch(e){$('#a1').innerHTML=err('추천을 불러오지 못했어요.','home()')}};f();
+srch('tag:new','track',0).then(a=>$('#a3').innerHTML=a.length?mos(a,'strip'):'<div class="em">신곡 데이터를 가져오지 못했어요.</div>')}
+async function artists(){$('#main').innerHTML=`<h1>아티스트</h1><h2>자주 듣는 아티스트</h2>${bubs(S.topA.slice(0,12))}<h2>새로 만날 아티스트</h2><div id="na">${skel(4)}</div><p><button class="btn g2" data-a="tab" data-id="artists">다른 아티스트 보기</button></p>`;glow(S.topA[0]?.img);newArtists().then(a=>{if($('#na'))$('#na').innerHTML=bubs(a.slice(0,14))})}
+function explore(){$('#main').innerHTML=`<h1>장르</h1>${genTiles(GEN)}`}
+async function genre(q,k,more){const m=$('#main');if(!more){tab='explore';nav();scrollTo(0,0);m.innerHTML=`<h1>${esc(k)}</h1><div class="chips" id="fl"><button class="chip on" data-a="flt" data-id="all">전체</button><button class="chip" data-a="flt" data-id="k">아는 곡</button><button class="chip" data-a="flt" data-id="n">새로운 곡</button></div><div id="gl">${skel(10)}</div><p><button class="btn g2" data-a="more" data-q="${esc(q)}" data-k="${esc(k)}">다른 곡 더 보기</button></p>`;window.GL=[]}
+const r=await srch(`genre:"${q}"`,'track',Math.floor(Math.random()*40));GL=uniq([...GL,...r]);drawG()}
+let flt='all';function drawG(){const l=GL.filter(t=>flt=='all'||(flt=='k')==S.known.has(t.id));$('#gl').innerHTML=mos(l);if(GL[0])glow(GL[0].img)}
+let sk='t',SR={t:[],a:[],q:''};
+function drawS(){$('#sr').innerHTML=SR.q?(sk=='t'?mos(SR.t):bubs(SR.a)):''}
+function search(){sk='t';SR={t:[],a:[],q:''};$('#main').innerHTML=`<h1>검색</h1><input class="in" id="q" placeholder="곡 또는 아티스트 이름" autofocus><div class="chips" id="sf"><button class="chip on" data-a="sf" data-id="t">곡</button><button class="chip" data-a="sf" data-id="a">아티스트</button></div><div id="sr"></div>`;let d;$('#q').oninput=e=>{clearTimeout(d);const v=e.target.value.trim();if(!v){SR.q='';return drawS()}d=setTimeout(async()=>{$('#sr').innerHTML=skel(6);const[a,b]=await Promise.all([srch(v,'track'),srch(v,'artist')]);SR={t:a,a:b,q:v};drawS()},400)}}
+async function lib(){$('#main').innerHTML=`<h1>좋아요</h1>${S.likedTr.length?mos(S.likedTr.slice(0,50)):'<div class="em">아직 좋아요한 곡이 없어요. 곡 위의 ♥를 눌러 보세요.</div>'}`}
+async function _oldLib(){const m=$('#main');m.innerHTML=`<h1>내 라이브러리</h1><h2>좋아요 표시한 곡</h2>${mos(S.likedTr.slice(0,40))}<h2>플레이리스트</h2><div id="pl">${S.pls.length?S.pls.map(p=>`<button class="row" data-a="pl" data-id="${p.id}"><div class="im" style="background-image:url('${esc(p.img)}')"></div><div><b>${esc(p.name)}</b><div class="sub" style="margin:0">${p.n??''}곡</div></div></button>`).join(''):'<div class="em">플레이리스트가 없어요. 곡의 ＋ 버튼으로 새로 만들 수 있어요.</div>'}</div><div id="pt"></div>`}
+async function showPl(id){$('#pt').innerHTML=skel(6);const r=await T(`/playlists/${id}/items?limit=50`)||await T(`/playlists/${id}/tracks?limit=50`);const l=(r?.items||[]).map(i=>norm(i.track||i.item)).filter(Boolean);$('#pt').innerHTML='<h2>플레이리스트 곡</h2>'+mos(l);$('#pt').scrollIntoView({behavior:'smooth'})}
+
+/* ---------- 모달 ---------- */
+const open=h=>{$('#mc').innerHTML=h;$('#md').classList.add('on')};const close=()=>$('#md').classList.remove('on');
+async function devs(){const r=await T('/me/player/devices');return r?.devices||[]}
+async function playU(body,t){if(t)glow(t.img);
+try{const d=await devs(),dv=d.find(x=>x.id==LS.dev)||d.find(x=>x.is_active)||d[0];if(!dv)return devModal(true);
+const go=()=>api('/me/player/play?device_id='+dv.id,{method:'PUT',body});
+try{await go()}catch(e){if(e.message=='404'||e.message=='502'){await api('/me/player',{method:'PUT',body:{device_ids:[dv.id],play:false}});await new Promise(s=>setTimeout(s,700));await go()}else throw e}
+LS.dev=dv.id;toast((t?'‘'+t.name+'’ ':'')+'재생 중 · '+dv.name)}
+catch(e){toast(e.message=='403'?'재생 권한이 없어요. Premium 계정인지 확인하고 다시 로그인해 주세요':'재생하지 못했어요 ('+e.message+')')}}
+const play=t=>playU({uris:['spotify:track:'+t.id]},t);
+async function devModal(none){const d=await devs();open(`<h3 style="margin:0 0 4px">재생할 Spotify 기기</h3>${none||!d.length?'<p class="sub">Spotify 앱을 켜고 곡을 한 번 재생한 뒤, 새로고침을 눌러 주세요.</p>':''}${d.map(x=>`<button class="row" data-a="dev" data-id="${x.id}"><b>${esc(x.name)}</b><span class="sub" style="margin:0">${esc(x.type)}${x.is_active?' · 사용 중':''}${x.id==LS.dev?' · 선택됨':''}</span></button>`).join('')}<div class="bar"><button class="btn g2" data-a="devs">새로고침</button><button class="btn g2" data-a="x">닫기</button></div>`)}
+async function trackModal(id,mood){const t=TR[id];glow(t.img);const l=S.liked.has(id);
+open(`<div class="hd"><div class="im" style="background-image:url('${esc(t.img)}')"></div><div><h3>${esc(t.name)}</h3><div>${esc(t.ar)}</div><div class="sub">${t.rd?esc(t.rd):''}${isNew(t)?' · NEW':''}</div></div></div>
+<div class="bar"><button class="btn" data-a="play" data-id="${id}">Spotify 기기에서 재생</button><button class="btn g2" data-a="like" data-id="${id}">${l?'♥ 좋아요 취소':'♡ 좋아요'}</button><button class="btn g2" data-a="art" data-id="${t.aid}">아티스트</button><button class="btn g2" data-a="x">닫기</button></div>
+<h2 style="margin-top:6px">이 곡과 비슷한 곡</h2>
+<div class="chips"><button class="chip ${mood?'':'on'}" data-a="mood" data-id="${id}" data-m="">기본</button>${Object.keys(MOOD).map(k=>`<button class="chip ${k==mood?'on':''}" data-a="mood" data-id="${id}" data-m="${k}">${k}</button>`).join('')}</div><div id="sm">${skel(8)}</div>`);
+const r=await similar(t,mood);if($('#sm'))$('#sm').innerHTML=mos(r.slice(0,16))}
+async function artModal(id){let a=AR[id];if(!a){const r=await T('/artists/'+id);if(!r)return toast('아티스트 정보를 불러오지 못했어요');a=normA(r)}glow(a.img);
+open(`<div class="hd"><div class="im" style="border-radius:50%;background-image:url('${esc(a.img)}')"></div><div><h3>${esc(a.name)}</h3><div class="sub">${esc(a.genres.slice(0,4).join(', '))||'장르 정보 없음'}</div></div></div><div class="bar"><button class="btn" data-a="playart" data-id="${a.id}">Spotify 기기에서 재생</button><button class="btn g2" data-a="x">닫기</button></div><h2 style="margin-top:6px">대표곡 · 취향에 맞을 만한 곡</h2><div id="at">${skel(8)}</div><h2>비슷한 아티스트</h2><div id="ar"></div>`);
+const [tr,ar]=await Promise.all([srch(`artist:"${a.name}"`,'track'),a.genres[0]?srch(`genre:"${a.genres[0]}"`,'artist',Math.floor(Math.random()*20)):[]]);
+if($('#at'))$('#at').innerHTML=mos(tr.filter(t=>t.aid==id||t.ar.includes(a.name)).sort((x,y)=>S.known.has(y.id)-S.known.has(x.id)));if($('#ar'))$('#ar').innerHTML=bubs(ar.filter(x=>x.id!=id).sort((p,q)=>wj(q.genres,Object.fromEntries(a.genres.map(x=>[x,1])))-wj(p.genres,Object.fromEntries(a.genres.map(x=>[x,1])))).slice(0,8))}
+async function plModal(id){const t=TR[id];const own=S.pls.filter(p=>p.own);
+open(`<h3 style="margin:0 0 4px">“${esc(t.name)}” 추가</h3>${own.map(p=>`<button class="row" data-a="addto" data-id="${id}" data-p="${p.id}"><div class="im" style="background-image:url('${esc(p.img)}')"></div><b>${esc(p.name)}</b></button>`).join('')||'<div class="em">내 플레이리스트가 없어요.</div>'}<div class="bar"><input class="in" id="npn" placeholder="새 플레이리스트 이름" style="flex:1;min-width:160px"><button class="btn" data-a="newpl" data-id="${id}">만들고 추가</button><button class="btn g2" data-a="x">닫기</button></div>`)}
+
+/* ---------- 계정 반영 ---------- */
+async function like(id){const on=S.liked.has(id);try{if(on)await api('/me/tracks?ids='+id,{method:'DELETE'});else await api('/me/tracks?ids='+id,{method:'PUT'});}catch(e){try{await api('/me/library?uris=spotify:track:'+id,{method:on?'DELETE':'PUT'})}catch{return toast('좋아요를 반영하지 못했어요 (권한 확인)')}}
+on?(S.liked.delete(id),S.likedTr=S.likedTr.filter(t=>t.id!=id),boost(id,-.15)):(S.liked.add(id),S.known.add(id),S.likedTr.unshift(TR[id]),boost(id,.25));
+document.querySelectorAll(`[data-a=like][data-id="${id}"]`).forEach(b=>b.classList.toggle('on',!on));toast(on?'좋아요를 취소했어요':'Spotify 좋아요에 추가했어요')}
+async function addTo(p,id){const b={uris:['spotify:track:'+id]};try{await api(`/playlists/${p}/items`,{method:'POST',body:b})}catch{try{await api(`/playlists/${p}/tracks`,{method:'POST',body:b})}catch{return toast('추가하지 못했어요. 내 플레이리스트인지 확인해 주세요')}}S.known.add(id);boost(id,.2);toast('플레이리스트에 추가했어요');close()}
+async function newPl(id){const n=$('#npn').value.trim();if(!n)return toast('이름을 입력해 주세요');const o={method:'POST',body:{name:n,public:false}};let p=await T('/me/playlists',o)||await T(`/users/${S.me.id}/playlists`,o);if(!p?.id)return toast('플레이리스트를 만들지 못했어요');S.pls.unshift({id:p.id,name:p.name,img:'',own:true});await addTo(p.id,id)}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(el){e.stopPropagation();const{a,id,q,k,m,p}=el.dataset;
+if(a=='tab')go(id);else if(a=='gen'||a=='more'){flt='all';genre(q,k,a=='more')}else if(a=='flt'){flt=id;document.querySelectorAll('#fl .chip').forEach(c=>c.classList.toggle('on',c==el));drawG()}
+else if(a=='like')like(id);else if(a=='add')plModal(id);else if(a=='sim'){trackModal(id,'')}else if(a=='art')artModal(id);else if(a=='play')play(TR[id]);
+else if(a=='mood')trackModal(id,m);else if(a=='dev'){LS.dev=id;toast('재생 기기를 바꿨어요');close()}else if(a=='devs')devModal();else if(a=='playart')playU({context_uri:'spotify:artist:'+id},AR[id]);else if(a=='x')close();else if(a=='addto')addTo(p,id);else if(a=='newpl')newPl(id);else if(a=='sf'){sk=id;document.querySelectorAll('#sf .chip').forEach(c=>c.classList.toggle('on',c==el));drawS()}return}
+const c=e.target.closest('.c[data-t]');if(c){const t=TR[c.dataset.t];glow(t.img);S.known.has(t.id)?trackModal(t.id,''):play(t);return}
+if(e.target.id=='md')close()});
+document.addEventListener('keydown',e=>{if(e.key=='Escape')close();if(e.key=='Enter'&&e.target.classList?.contains('c'))e.target.click()});
+
+
+/* ---------- 시작 ---------- */
+function setup(msg){$('#nav').innerHTML='';$('#main').innerHTML=`<div class="setup"><h1>Spotify 음악 발견</h1>${msg?`<p style="color:#ff8aa5">${esc(msg)}</p>`:''}<input class="in" id="cid" placeholder="Client ID" value="${esc(LS.cid||'')}"><button class="btn" onclick="login()">Spotify로 로그인</button></div>`}
+async function boot(){nav();$('#main').innerHTML=skel(8);
+try{S.me=await api('/me');$('#me').innerHTML=`${esc(S.me.display_name||'')} <button onclick="devModal()">재생 기기</button> <button onclick="logout()">로그아웃</button>`;
+const[lk,pl,tt,ta]=await Promise.all([T('/me/tracks?limit=50'),T('/me/playlists?limit=30'),T('/me/top/tracks?limit=50&time_range=medium_term'),T('/me/top/artists?limit=30&time_range=medium_term')]);
+S.likedTr=(lk?.items||[]).map(i=>norm(i.track)).filter(Boolean);S.likedTr.forEach(t=>{S.liked.add(t.id);S.known.add(t.id)});
+S.topT=(tt?.items||[]).map(norm).filter(Boolean);S.topT.forEach(t=>S.known.add(t.id));S.topA=(ta?.items||[]).map(normA);
+S.pls=(pl?.items||[]).filter(Boolean).map(p=>({id:p.id,name:p.name,img:p.images?.[0]?.url||'',n:p.tracks?.total??p.items?.total,own:p.owner?.id==S.me.id||p.collaborative}));
+const c={};S.topA.forEach((a,i)=>a.genres.forEach(g=>c[g]=(c[g]||0)+1/(1+i/15)));const mx=Math.max(1,...Object.values(c));S.gw={};Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,30).forEach(([k,v])=>S.gw[k]=v/mx);S.tg=Object.keys(S.gw).slice(0,8);
+const kn=[...S.likedTr,...S.topT],ys=kn.map(t=>+t.rd.slice(0,4)).filter(Boolean).sort();S.y=ys[ys.length>>1]||2020;const sq={};kn.forEach(t=>{const k=scr(t.name+t.ar);sq[k]=(sq[k]||0)+1});S.scr=Object.entries(sq).sort((a,b)=>b[1]-a[1])[0]?.[0]||'l';
+go('home');
+for(const p of S.pls.slice(0,8)){const r=await T(`/playlists/${p.id}/items?limit=50`)||await T(`/playlists/${p.id}/tracks?limit=50`);(r?.items||[]).forEach(i=>{const t=i.track||i.item;if(t?.id)S.known.add(t.id)})}
+}catch(e){$('#main').innerHTML=err('데이터를 불러오지 못했어요: '+esc(e.message),'boot()')}}
+(async()=>{const q=new URLSearchParams(location.search);if(q.get('code')){try{await tok({grant_type:'authorization_code',code:q.get('code'),redirect_uri:REDIR,code_verifier:LS.ver});history.replaceState({},'',REDIR)}catch(e){history.replaceState({},'',REDIR);return setup('로그인에 실패했어요. Client ID와 Redirect URI를 확인해 주세요.')}}
+else if(q.get('error'))return setup('로그인이 취소되었어요.');
+LS.at&&LS.sc==SC?boot():setup(LS.at?'재생 권한이 추가되어 다시 로그인이 필요해요.':'')})();
+</script>
+</body>
+</html>
